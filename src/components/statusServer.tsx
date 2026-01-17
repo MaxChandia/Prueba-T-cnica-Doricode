@@ -4,6 +4,8 @@ interface StatusProps {
 }
 
 export default function ServerStatus ({ isOnline, isSyncing }: StatusProps) {
+
+  /* Componente de estado del servidor */
   return (
     <div className="flex items-center gap-4 bg-white p-2 px-4 rounded-full shadow-sm border border-gray-100">
       <div className="flex items-center gap-2">
