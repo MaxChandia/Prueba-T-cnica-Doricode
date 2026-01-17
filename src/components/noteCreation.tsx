@@ -82,7 +82,6 @@ export default function NoteModal({ isOpen, onClose }: NoteModalProps) {
 
   /* Función para manejar cierre del modal */
   const handleClose = () => {
-    console.log('🚫 Modal cerrado - Formulario limpiado');
     setTitle('');
     setUser('');
     setContent('');
