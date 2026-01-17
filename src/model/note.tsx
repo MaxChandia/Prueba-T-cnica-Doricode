@@ -1,8 +1,10 @@
 export interface Note {
-    id: number;
+    id: string;
     title: string;
     user: string;
     content: string;
-    createdAt: Date;
+    createdAt: number;
+    updatedAt: number;
     checked: boolean;
+    deleted?: boolean;
 }
