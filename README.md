@@ -89,7 +89,7 @@ Esto garantiza consistencia eventual entre todos los clientes.
 
 ### 3️. Soporte Offline y Soft Delete
 
-#### 📦 Persistencia Local
+####  Persistencia Local
 
 * Se utiliza `localStorage` como caché local.
 * La aplicación **siempre carga primero los datos locales**, asegurando disponibilidad sin conexión.
