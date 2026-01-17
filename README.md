@@ -1,74 +1,55 @@
-# Prueba-T-cnica-Doricode
-# React + TypeScript + Vite
+Prueba Técnica Doricode Listado de Tareas:
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este proyecto es una solución técnica para el manejo de notas personales con soporte offline, construida bajo una arquitectura de sincronización de estado.
 
-Currently, two official plugins are available:
+🚀 Cómo ejecutar el proyecto
+Para simular el entorno de 1 servidor y 2 clientes, sigue estos pasos:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Servidor:
 
-## React Compiler
+Bash
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+cd server
+npm install
+npm run dev  # Corre en http://localhost:4000
+Clientes (Frontend):
 
-## Expanding the ESLint configuration
+Bash
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+# Terminal principal
+npm install
+npm run dev  # Corre en http://localhost:5173
+Cliente 1: Abre http://localhost:5173 en tu navegador.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Cliente 2: Abre la misma URL en una ventana de incógnito (para tener un localStorage independiente).
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Arquitectura y Decisiones Técnicas
+La solución se basa en una arquitectura Offline-First, donde el cliente es capaz de operar de forma autónoma y sincronizar su estado con el servidor cuando la conexión está disponible.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1. Sincronización y Consistencia Eventual
+Para el proyecto se usó un modelo de Sincronización de Estado Completo mediante el endpoint /sync.Permitiendo que el usuario realice múltiples cambios (crear, editar, borrar) sin conexión. Al recuperar el acceso, se envía el lote de cambios en una sola petición, optimizando los puertos de red y el tráfico.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Last Write Wins (LWW)
+Para resolver conflictos entre múltiples clientes, se implementó la estrategia Last Write Wins.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Cada nota posee un campo updatedAt (timestamp).
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+El servidor compara el updatedAt de la nota entrante con la versión que posee en memoria. Solo se aceptan cambios si el timestamp del cliente es estrictamente mayor.
+
+3. Soporte Offline y Soft Delete
+Persistencia: Se utiliza localStorage como caché local. La aplicación siempre carga primero los datos locales para garantizar disponibilidad inmediata.
+
+Borrado Lógico: Las notas no se eliminan físicamente del cliente mientras está offline; se marcan con deleted: true. Esto permite que el servidor se entere del borrado durante el próximo ciclo de sincronización.
+
+4. Finite State Machine (FSM)
+El Dashboard actúa como una máquina de estados  para gestionar la UI de forma predecible.
+
+Tecnologías utilizadas
+Frontend: React, TypeScript, Tailwind CSS (estilos modernos y responsivos).
+
+Backend: Node.js, Express, TypeScript.
+
+Comunicación: Polling (Sondeo) cada 10 segundos para garantizar que el Cliente A reciba los cambios del Cliente B eventualmente.
+
+Conceptos Aplicados
+Puertos de Red: Configuración de CORS para permitir comunicación entre el puerto 5173 (Vite) y 4000 (Express).
