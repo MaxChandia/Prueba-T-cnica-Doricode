@@ -18,15 +18,11 @@ export default function NoteComponent({ note, onUpdate }: NoteCardProps) {
 
   /* Función para sincronizar y avisar al Dashboard */
   const syncWithServer = async (updatedNote: Note) => {
-    // 1. Guardar en LocalStorage (Offline support)
     const localNotes = JSON.parse(localStorage.getItem("notes") || "[]");
     const newLocalNotes = localNotes.map((n: Note) => n.id === updatedNote.id ? updatedNote : n);
     localStorage.setItem("notes", JSON.stringify(newLocalNotes));
-
-    // 2. Avisar al Dashboard para que refresque la UI
     onUpdate();
 
-    // 3. Intentar sync con servidor
     try {
       await fetch(`${SERVER_URL}/sync`, {
         method: 'POST',
