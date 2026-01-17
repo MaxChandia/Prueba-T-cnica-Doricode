@@ -4,9 +4,10 @@ import type { Note } from "../model/note";
 interface NoteModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onNoteCreated: () => void;
 }
 
-export default function NoteModal({ isOpen, onClose }: NoteModalProps) {
+export default function NoteModal({ isOpen, onClose, onNoteCreated }: NoteModalProps) {
   const [title, setTitle] = useState('');
   const [user, setUser] = useState('');
   const [content, setContent] = useState('');
@@ -41,8 +42,6 @@ export default function NoteModal({ isOpen, onClose }: NoteModalProps) {
       return;
     }
     
-    console.log('Datos de la nota:', { title, user, content });
-    
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2, 9);
     const uniqueId = `${timestamp}-${random}`;
@@ -58,6 +57,19 @@ export default function NoteModal({ isOpen, onClose }: NoteModalProps) {
       deleted: false
     };
 
+    const localNotes = JSON.parse(localStorage.getItem("notes") || "[]");
+    const updatedLocalNotes = [...localNotes, newNote];
+    localStorage.setItem("notes", JSON.stringify(updatedLocalNotes));
+
+    
+    onNoteCreated(); 
+
+    setTitle('');
+    setUser('');
+    setContent('');
+    setErrors({});
+    onClose();
+
     try {
       const response = await fetch(`${SERVER_URL}/sync`, {
         method: 'POST',
@@ -66,17 +78,10 @@ export default function NoteModal({ isOpen, onClose }: NoteModalProps) {
       });
 
       if (response.ok) {
-        console.log(`Nota "${title}" creada exitosamente`);
-        setTitle('');
-        setUser('');
-        setContent('');
-        setErrors({});
-        onClose();
-      } else {
-        console.error('Error: El servidor respondió con error');
+        console.log(`Nota "${title}" sincronizada con el servidor`);
       }
     } catch (error) {
-      console.error('Error al crear nota:', error);
+      console.warn('Servidor offline. La nota se sincronizará automáticamente al recuperar conexión.');
     }
   };
 
